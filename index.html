@@ -1,0 +1,437 @@
+<title>CS Holiday Schedule</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: navy control bar on top, roster list, legend, then a horizontally scrolling hour-grid timeline with a sticky name column. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#1b2333; --muted:#6a7385; --line:#e3e6ec; --grid:#eef0f4;
+  --bar:#1e2738; --bar-fg:#ffffff; --bar-muted:#a9b3c6; --bar-ctl:#2b3549; --bar-line:#3a4660;
+  --accent:#b5531c; --warn-bg:#fff4e8; --warn-fg:#9a4a12; --warn-line:#f1cfae;
+  --now:#d6362f;
+  --tt:#f6b8a0; --tt-fg:#5a2513;
+  --wm:#aac4ef; --wm-fg:#1d3866;
+  --wd:#f2b6d3; --wd-fg:#6a1e45;
+  --az:#d4c2ec; --az-fg:#3e2768;
+  --bm:#b9e2cc; --bm-fg:#1d4d34;
+  --fl:#bfd0d6; --fl-fg:#26444f;
+  --sp:#f3d68a; --sp-fg:#5a4410;
+  --op:#e9cfb1; --op-fg:#5b3a17;
+  --lu:#eceef2; --lu-fg:#5b6475;
+  --ho:#dfe3ea; --ho-fg:#465064;
+  --display:"Outfit",system-ui,sans-serif; --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161f; --surface:#1a202c; --fg:#e7eaf0; --muted:#9aa3b5; --line:#2b3342; --grid:#222a37;
+  --bar:#0c1018; --bar-fg:#f2f4f8; --bar-muted:#8d97ab; --bar-ctl:#1f2735; --bar-line:#33405a;
+  --accent:#f0a46e; --warn-bg:#2d2116; --warn-fg:#f3be8f; --warn-line:#5a3d22;
+  --now:#ff6b5e;
+  --tt:#7a3a26; --tt-fg:#ffe2d6; --wm:#2e4a7c; --wm-fg:#dfe9ff; --wd:#6e2a4d; --wd-fg:#ffe1ef; --az:#4b3772; --az-fg:#efe6ff;
+  --bm:#24573e; --bm-fg:#dcf5e7; --fl:#2f4a54; --fl-fg:#ddedf2; --sp:#6b5418; --sp-fg:#fff1c9;
+  --op:#5e4426; --op-fg:#fbe7d0; --lu:#2a313e; --lu-fg:#b6bdcc; --ho:#323a49; --ho-fg:#c9d0dd;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161f; --surface:#1a202c; --fg:#e7eaf0; --muted:#9aa3b5; --line:#2b3342; --grid:#222a37;
+  --bar:#0c1018; --bar-fg:#f2f4f8; --bar-muted:#8d97ab; --bar-ctl:#1f2735; --bar-line:#33405a;
+  --accent:#f0a46e; --warn-bg:#2d2116; --warn-fg:#f3be8f; --warn-line:#5a3d22;
+  --now:#ff6b5e;
+  --tt:#7a3a26; --tt-fg:#ffe2d6; --wm:#2e4a7c; --wm-fg:#dfe9ff; --wd:#6e2a4d; --wd-fg:#ffe1ef; --az:#4b3772; --az-fg:#efe6ff;
+  --bm:#24573e; --bm-fg:#dcf5e7; --fl:#2f4a54; --fl-fg:#ddedf2; --sp:#6b5418; --sp-fg:#fff1c9;
+  --op:#5e4426; --op-fg:#fbe7d0; --lu:#2a313e; --lu-fg:#b6bdcc; --ho:#323a49; --ho-fg:#c9d0dd;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--bar);color:var(--bar-fg);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.top-in{max-width:1240px;margin:0 auto;padding-block:16px;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--bar-muted);font-weight:600}
+h1{font-family:var(--display);font-weight:700;font-size:26px;margin:2px 0 0;letter-spacing:-.01em;text-wrap:balance}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctl button,.ctl input{font:inherit;color:var(--bar-fg);background:var(--bar-ctl);border:1px solid var(--bar-line);border-radius:6px;height:36px}
+.ctl button{padding:0 12px;cursor:pointer;font-weight:600}
+.ctl button.ic{width:36px;padding:0;font-size:16px}
+.ctl input{padding:0 10px;color-scheme:dark;font-variant-numeric:tabular-nums}
+.ctl button:hover{border-color:var(--bar-muted)}
+.datecol{display:flex;flex-direction:column;align-items:center;gap:2px}
+.datecol small{color:var(--bar-muted);font-size:12px}
+button:focus-visible,input:focus-visible,.blk:focus-visible,.day:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{max-width:1240px;margin:0 auto;padding-block:24px 48px;display:flex;flex-direction:column;gap:28px}
+h2{font-family:var(--display);font-weight:600;font-size:17px;margin:0 0 10px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.day{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.day b{font-family:var(--display);font-weight:600;font-size:13px}
+.day span{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.day.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.day .hd{color:var(--accent);font-weight:600}
+.banner{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-fg);border-radius:8px;padding:10px 14px;font-weight:500}
+.banner[hidden]{display:none}
+.roster{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row .nm{font-weight:600}
+.row .nm em{font-style:normal;color:var(--muted);font-weight:500}
+.row .meta{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.row .note{color:var(--accent);font-size:13px;font-weight:600;text-align:right}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+.tl{--h:72px;--nw:170px;position:relative;min-width:100%}
+.tl-row{display:flex;border-top:1px solid var(--grid)}
+.tl-row.axis{border-top:0;position:sticky;top:0}
+.tl-name{flex:0 0 var(--nw);position:sticky;left:0;z-index:2;background:var(--surface);padding:10px 12px 10px 16px;border-right:1px solid var(--line)}
+.tl-name b{display:block;font-weight:600;font-size:13px}
+.tl-name small{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.track{position:relative;flex:0 0 auto;height:58px;background-image:repeating-linear-gradient(90deg,var(--grid) 0 1px,transparent 1px var(--h))}
+.axis .track{height:34px;background:none}
+.tick{position:absolute;top:10px;transform:translateX(-50%);font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tick.first{transform:none}
+.blk{position:absolute;top:8px;bottom:8px;border-radius:5px;padding:4px 6px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;justify-content:center;border:1px solid transparent}
+.blk:hover{filter:brightness(.96)}
+.blk .s{font-weight:600;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk .t{font-size:10.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk.flag{border:1.5px dashed var(--now)}
+.blk.on{box-shadow:0 0 0 2px var(--fg)}
+.c-tt{background:var(--tt);color:var(--tt-fg)} .c-wm{background:var(--wm);color:var(--wm-fg)} .c-wd{background:var(--wd);color:var(--wd-fg)}
+.c-az{background:var(--az);color:var(--az-fg)} .c-bm{background:var(--bm);color:var(--bm-fg)}
+.c-fl{background:var(--fl);color:var(--fl-fg)} .c-sp{background:var(--sp);color:var(--sp-fg)}
+.c-op{background:var(--op);color:var(--op-fg)} .c-lu{background:var(--lu);color:var(--lu-fg)}
+.c-ho{background:var(--ho);color:var(--ho-fg)}
+.nowline{position:absolute;top:0;bottom:0;width:2px;background:var(--now);z-index:1;pointer-events:none}
+.nowline::before{content:"Now";position:absolute;top:2px;left:4px;font-size:10px;font-weight:700;color:var(--now)}
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px}
+.detail .hint{color:var(--muted)}
+.detail .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;margin-left:8px}
+.alerts{display:grid;gap:8px;padding:0;margin:0;list-style:none}
+.alerts li{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--now);border-radius:6px;padding:10px 12px}
+.alerts li b{font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);padding:14px 16px}
+@media (max-width:640px){
+  h1{font-size:21px}
+  .tl{--nw:118px;--h:60px}
+  .week{grid-template-columns:repeat(7,minmax(42px,1fr))}
+  .week-wrap{overflow-x:auto}
+  .day{padding:6px}
+  .row .note{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top gut">
+  <div class="top-in">
+    <div>
+      <div class="eyebrow">Customer Service · Holiday Season</div>
+      <h1>Holiday Schedule Timeline</h1>
+    </div>
+    <div class="ctl">
+      <button class="ic" id="prev" aria-label="Previous day">‹</button>
+      <div class="datecol">
+        <input type="date" id="date" aria-label="Schedule date">
+        <small id="longdate"></small>
+      </div>
+      <button class="ic" id="next" aria-label="Next day">›</button>
+      <button id="today">Today</button>
+    </div>
+  </div>
+</header>
+
+<main class="gut">
+  <section>
+    <h2>This week</h2>
+    <div class="week-wrap"><div class="week" id="week"></div></div>
+  </section>
+
+  <div class="banner" id="holiday" hidden></div>
+
+  <section>
+    <h2 id="who-h">Who's scheduled</h2>
+    <div class="roster" id="roster"></div>
+  </section>
+
+  <div class="legend" id="legend"></div>
+
+  <section>
+    <h2 id="tl-h">Task Timeline</h2>
+    <div class="tl-wrap"><div class="tl" id="tl"></div></div>
+  </section>
+
+  <section>
+    <h2>Block details</h2>
+    <div class="detail" id="detail"><span class="hint">Select any block on the timeline to see the main task and what to work on if it finishes early.</span></div>
+  </section>
+
+  <section>
+    <h2>Coverage gaps to confirm</h2>
+    <ul class="alerts" id="alerts"></ul>
+  </section>
+</main>
+
+<script>
+const CAT = {
+  tt:{n:"TikTok",s:"TikTok"}, wm:{n:"Walmart / Temu",s:"Walmart/Temu"}, az:{n:"Amazon",s:"Amazon"},
+  bm:{n:"Back Market",s:"Back Market"}, fl:{n:"StackCommerce / UntilGone / Groupon",s:"SC/UG/Groupon"},
+  wd:{n:"Walmart disputes",s:"Walmart disputes"}, sp:{n:"Whatnot / Best Buy / eBay",s:""}, op:{n:"RMA & sheets",s:"RMA / Sheets"},
+  lu:{n:"Lunch",s:"Lunch"}, ho:{n:"Handoff",s:"Handoff"}
+};
+// [start, end, cat, task, ifEarly, flag, shortLabel]  hours; >24 = after midnight
+const AZT="Assigned Amazon tickets";
+const P = {
+ timMT:[[7,9.5,"tt","TikTok messages, authorized returns/refunds and return-sheet work",AZT],
+  [9.5,11.5,"wm","Walmart Revita + 5G; then Temu","Amazon refunds"],
+  [11.5,12.5,"lu","Lunch — Nathan covers Walmart"],
+  [12.5,13.5,"az","Amazon CS: assigned messages and authorized refund/RMA work","Oldest actionable assigned Amazon cases"],
+  [13.5,14.5,"tt","TikTok messages, returns/refunds and sheet work",AZT],
+  [14.5,15.75,"wm","Walmart pending cases; then Temu",AZT],
+  [15.75,16,"ho","Finish due-soon primary work and write handoff"]],
+ timThF:[[7,9.5,"wm","Walmart Revita + 5G: messages, authorized refunds/replacements and RMAs","TikTok"],
+  [9.5,11.5,"tt","TikTok messages, authorized returns/refunds and sheet work","Amazon"],
+  [11.5,12.5,"lu","Lunch — Walmart relief not confirmed",null,1],
+  [12.5,14.5,"wm","Walmart pending cases and returns; Temu check","TikTok urgent work, then Amazon"],
+  [14.5,15.75,"tt","TikTok messages and return/refund follow-ups","Amazon"],
+  [15.75,16,"ho","Walmart/TikTok handoff to Thursday's Nathan or Friday's Neil"]],
+ timSat:[[21,24,"wm","Walmart messages, authorized returns/refunds and RMAs; Temu check","Refund the returns on the sheet"],
+  [24,25,"lu","Lunch — a trained Walmart backup must cover (not yet assigned)",null,1],
+  [25,26,"wm","Walmart Revita + 5G: messages, authorized refunds/replacements and RMAs","Amazon"],
+  [26,27,"wm","Walmart plus urgent TikTok return/refund relief if authorized","Amazon"],
+  [27,28.5,"wm","Walmart/Temu follow-ups","Amazon"],
+  [28.5,29.75,"wm","Walmart/Temu due-soon cases and sheet work","Amazon"],
+  [29.75,30,"ho","Sunday handoff"]],
+ natMT:[[7,9.5,"wm","Walmart Revita + 5G; then Temu",AZT],
+  [9.5,10.5,"tt","TikTok returns/refunds and sheet work",AZT],
+  [10.5,11.5,"lu","Lunch — Tim covers Walmart"],
+  [11.5,13.5,"wm","Walmart/Temu; also Walmart relief during Tim's lunch",AZT],
+  [13.5,14.5,"az","Amazon CS: assigned messages and authorized actions","Continue assigned Amazon queue"],
+  [14.5,15.5,"tt","TikTok returns/refunds and message assistance",AZT],
+  [15.5,16,"wm","Walmart/Temu final work and handoff",null,0,"Wrap-up"]],
+ natW:[[7,10.5,"wm","Walmart Revita + 5G; Temu check","TikTok urgent returns/refunds, then Amazon"],
+  [10.5,11.5,"lu","Lunch — trained Walmart relief not yet assigned",null,1],
+  [11.5,13.5,"wm","Walmart messages, authorized actions and RMAs","TikTok urgent work, then Amazon"],
+  [13.5,14.5,"tt","TikTok returns/refunds and sheet work","Amazon"],
+  [14.5,15.75,"wm","Walmart/Temu follow-ups","Amazon"],
+  [15.75,16,"ho","Handoff to Neil India"]],
+ eveWM:[[16,18,"wm","Walmart Revita + 5G; Temu check","TikTok urgent returns/refunds, then Amazon"],
+  [18,19,"tt","TikTok returns/refunds and return-sheet work","Amazon"],
+  [19,20,"wm","Walmart pending messages, authorized actions and RMAs","Amazon"],
+  [20,21,"lu","Lunch — trained Walmart relief unassigned",null,1],
+  [21,22,"tt","TikTok messages and returns/refunds during Niel's lunch","Amazon"],
+  [22,23.5,"wm","Walmart/Temu follow-ups","Amazon"],
+  [23.5,24.75,"tt","TikTok return/refund work and authorized sheet actions","Amazon"],
+  [24.75,25,"ho","Written handoff"]],
+ neilSun:[[16,18,"wm","Walmart Revita + 5G; Temu","TikTok urgent work; Mae is still working"],
+  [18,19,"tt","TikTok messages and return/refund work","Amazon"],
+  [19,20,"az","Amazon messages and authorized actions","Walmart/TikTok urgent cases"],
+  [20,21,"lu","Lunch — no active CS coverage",null,1],
+  [21,22.5,"wm","Walmart/Temu","TikTok"],
+  [22.5,23.5,"tt","TikTok messages and return/refund work","Amazon"],
+  [23.5,24.75,"az","Amazon messages and authorized sheet actions","Walmart/TikTok urgent cases"],
+  [24.75,25,"ho","Written handoff"]],
+ maeMT:[[7,8,"bm","Back Market messages, returns and RMAs","Amazon"],
+  [8,11,"tt","TikTok messages, replacements, labels and authorized return work","Amazon CS"],
+  [11,12,"lu","Lunch"],
+  [12,13,"az","Amazon CS and urgent relief during Belle's lunch","TikTok"],
+  [13,14,"wd","Walmart disputes and Amazon follow-ups (A-to-Z only if requested as backup)","Amazon",0,"Walmart disputes"],
+  [14,15,"az","Amazon CS — Chrome Source and Certified Resellers","Amazon if TikTok is current"],
+  [15,15.75,"tt","TikTok final work and follow-ups","Amazon"],
+  [15.75,16,"ho","Written handoff"]],
+ maeSun:[[9,11,"tt","TikTok messages, returns/refunds within authority","Amazon assigned messages; A-to-Z only if primary owner is unavailable and backup is requested"],
+  [11,12,"az","Amazon messages and authorized actions","TikTok"],
+  [12,13,"tt","TikTok","Amazon"],
+  [13,14,"lu","Lunch — no active TikTok coverage",null,1],
+  [14,15,"tt","TikTok","Amazon"],
+  [15,15.5,"bm","Back Market","TikTok"],
+  [15.5,17.5,"az","Amazon; give Neil the Walmart/TikTok handoff at 4 PM","TikTok"],
+  [17.5,18,"tt","TikTok final work and handoff",null,0,"Wrap-up"]],
+ belMTh:[[7,10,"az","Amazon — Chrome Source","Certified Resellers",0,"Chrome Source"],
+  [10,11.5,"az","Amazon — Certified Resellers","Milo / Prince / Tech Wholesale",0,"Certified Resellers"],
+  [11.5,12,"az","Amazon — Milo / Prince / Tech Wholesale","Chrome Source / Certified Resellers",0,"Milo"],
+  [12,13,"lu","Lunch — Mae provides urgent Amazon relief"],
+  [13,14.5,"az","Amazon — Chrome Source","Certified Resellers",0,"Chrome Source"],
+  [14.5,15.5,"az","Amazon — Certified Resellers","Remaining Amazon stores",0,"Certified Resellers"],
+  [15.5,15.75,"op","Amazon refund/return-sheet actions","Oldest actionable Amazon case",0,"Sheet"],
+  [15.75,16,"ho","Handoff"]],
+ belF:[[7,9.5,"az","Amazon — Chrome Source","Certified Resellers",0,"Chrome Source"],
+  [9.5,10.5,"az","Amazon — Chrome Source / urgent assigned tickets","TikTok urgent-message backup if Mae requests help",0,"Chrome Source"],
+  [10.5,11.5,"az","Amazon — Certified Resellers","Remaining Amazon stores",0,"Certified Resellers"],
+  [11.5,12,"az","Amazon — Certified Resellers / Milo","TikTok urgent-message backup if Mae requests help",0,"CR / Milo"],
+  [12,13,"lu","Lunch — Erika covers Amazon"],
+  [13,14,"az","Amazon — Chrome Source","Certified Resellers",0,"Chrome Source"],
+  [14,14.5,"az","Amazon — Chrome Source / Certified Resellers","TikTok urgent-message backup if Mae requests help",0,"CS / CR"],
+  [14.5,15.75,"az","Amazon — Certified Resellers, remaining stores and sheet work","Oldest actionable Amazon case",0,"CR + sheet"],
+  [15.75,16,"ho","Handoff to Joy"]],
+ belSun:[[7,9,"az","Amazon — Chrome Source overdue and new messages","Certified Resellers",0,"Chrome Source"],
+  [9,11,"az","Amazon — Certified Resellers and Chrome Source","Milo / other Amazon stores",0,"CR + Chrome Source"],
+  [11,12,"az","Amazon — Milo, Prince Express, Tech Wholesale","Amazon oldest actionable cases",0,"Milo / Prince"],
+  [12,13,"lu","Lunch — Amazon coverage reduced; Mae handles urgent requests if trained",null,1],
+  [13,14.5,"az","Amazon — Chrome Source and returns/RMA actions","Certified Resellers",0,"Chrome Source"],
+  [14.5,15.75,"az","Amazon — Certified Resellers / remaining stores","Amazon urgent cases",0,"CR + stores"],
+  [15.75,16,"ho","Sunday Amazon handoff to Mae / Neil India (shared after 4 PM)"]],
+ eriMTh:[[8,8.75,"sp","eBay","Amazon refund",0,"eBay"],
+  [8.75,9.5,"sp","Whatnot","Customer Issue Sheet",0,"Whatnot"],
+  [9.5,10,"sp","Best Buy USA / Best Buy LAtel","Customer Issue Sheet",0,"Best Buy"],
+  [10,10.75,"sp","Activation lock follow-ups","Amazon refund",0,"Activation locks"],
+  [10.75,11.5,"sp","Best Buy USA / Best Buy LAtel",AZT,0,"Best Buy"],
+  [11.5,12.5,"op","RMA closures and authorized refunds",AZT,0,"RMAs"],
+  [12.5,13.5,"lu","Lunch"],
+  [13.5,14,"sp","Whatnot / Best Buy follow-ups",AZT,0,"Follow-ups"],
+  [14,15.5,"az","Amazon — assigned Chrome Source / Certified Resellers messages and authorized sheet work","Oldest assigned Amazon case"],
+  [15.5,16.5,"sp","eBay / Best Buy / Whatnot closing work","Weekly refund report using Jasmin/Mae's documented handoff",0,"Closing work"],
+  [16.5,17,"op","Replacement tracking and final notes","Amazon",0,"Replacements"]],
+ eriF:[[8,8.75,"sp","eBay","Amazon refund",0,"eBay"],
+  [8.75,9.5,"sp","Whatnot","Customer Issue Sheet if needed; otherwise move to the next marketplace",0,"Whatnot"],
+  [9.5,10,"sp","Best Buy","Amazon refund",0,"Best Buy"],
+  [10,10.75,"sp","Activation locks / warranty follow-ups","Customer Issue Sheet if needed; otherwise move to the next marketplace",0,"Activation locks"],
+  [10.75,11.5,"sp","Best Buy USA / Best Buy LATEL","Actionable RMA work",0,"Best Buy"],
+  [11.5,12,"op","RMA closures and authorized refunds","eBay",0,"RMAs"],
+  [12,13,"az","Amazon relief during Belle's lunch","Assigned Amazon sheet work",0,"Amazon relief"],
+  [13,14,"lu","Lunch"],
+  [14,15.5,"az","Amazon — Chrome Source / Certified Resellers","eBay"],
+  [15.5,16,"sp","Whatnot","Weekly refund report using Jasmin/Mae's documented handoff",0,"Whatnot"],
+  [16,16.5,"op","Weekly refund report using Jasmin/Mae's documented handoff",null,0,"Refund report"],
+  [16.5,17,"op","Replacement tracking and final notes",null,0,"Replacements"]],
+ joyWk:[[16,18.5,"az","Amazon — Chrome Source","Certified Resellers",0,"Chrome Source"],
+  [18.5,20,"az","Amazon — Certified Resellers","Remaining Amazon stores",0,"Certified Resellers"],
+  [20,20.5,"az","Amazon — Milo / Prince / Tech Wholesale","Chrome Source",0,"Milo"],
+  [20.5,21.5,"lu","Lunch — authorized Amazon relief is shared with Neil/Nathan and Niel"],
+  [21.5,22.5,"az","Amazon — Chrome Source","Certified Resellers",0,"Chrome Source"],
+  [22.5,23.5,"az","Amazon — Certified Resellers","Remaining Amazon stores",0,"Certified Resellers"],
+  [23.5,24,"az","Amazon — remaining stores","Chrome Source / Certified Resellers",0,"Other stores"],
+  [24,24.75,"op","Amazon pending authorized actions and sheet work","Oldest actionable Amazon case",0,"Sheet"],
+  [24.75,25,"ho","Written handoff"]],
+ joySat:[[21,24,"az","Chrome Source / Certified Resellers; urgent cases in any Amazon store first","Assigned authorized overflow",0,"CS / CR"],
+  [24,25,"az","Amazon","Assigned authorized overflow"],
+  [25,26,"lu","Lunch"],
+  [26,27,"az","Amazon plus trained TikTok message relief","Assigned authorized overflow",0,"Amazon + TikTok relief"],
+  [27,28.5,"az","Remaining Amazon stores and pending cases","Assigned authorized overflow",0,"Other stores"],
+  [28.5,29.75,"op","Refund returns on the sheet","Assigned authorized overflow",0,"Refund sheet"],
+  [29.75,30,"ho","Sunday handoff"]],
+ nielWk:[[16,20,"tt","TikTok messages, replacements and labels","Assigned Amazon messages"],
+  [20,21,"fl","StackCommerce / UntilGone / Groupon and sheet work","TikTok, then Amazon"],
+  [21,22,"lu","Lunch — Neil India (Thursday: Nathan) handles urgent TikTok"],
+  [22,23.75,"tt","TikTok messages and follow-ups","Flash-site follow-ups"],
+  [23.75,24,"fl","Flash-site follow-ups","TikTok"],
+  [24,24.75,"tt","TikTok final work","Assigned Amazon messages"],
+  [24.75,25,"ho","Written handoff"]],
+ nielSat:[[21,24,"tt","TikTok messages, authorized returns/refunds and sheet work","Assigned authorized overflow"],
+  [24,25,"tt","TikTok","Assigned authorized overflow"],
+  [25,26,"tt","TikTok; authorized Amazon help if needed","Assigned authorized overflow"],
+  [26,27,"lu","Lunch"],
+  [27,28.5,"tt","TikTok follow-ups and pending returns/refunds","Assigned authorized overflow"],
+  [28.5,29.75,"tt","TikTok due-soon cases and sheet work","Assigned authorized overflow"],
+  [29.75,30,"ho","Sunday handoff"]]
+};
+P.maeWF = P.maeMT.map(b=>b[0]===14?[14,15,"tt","TikTok messages, returns and refund requests","Amazon if TikTok is current"]:b);
+
+const PEOPLE = {
+  tim:{n:"Tim",loc:"India"}, nathan:{n:"Nathan",loc:"India"}, belle:{n:"Belle"}, mae:{n:"Mae"},
+  erika:{n:"Erika"}, niel:{n:"Niel Ramos",loc:"PH"}, joy:{n:"Joy"}, neil:{n:"Neil",loc:"India"}
+};
+// day index 0=Sun ... 6=Sat → [person, plan, note]
+const WEEK = {
+ 0:[["belle","belSun","Added Sunday shift"],["mae","maeSun","TikTok primary · A-to-Z backup only"],["neil","neilSun","Shares Amazon/TikTok after 4 PM"]],
+ 1:[["tim","timMT"],["nathan","natMT","Walmart primary"],["belle","belMTh"],["mae","maeMT","A-to-Z backup only"],["erika","eriMTh"],["joy","joyWk"],["niel","nielWk"],["neil","eveWM","Walmart primary"]],
+ 2:[["tim","timMT"],["nathan","natMT","Walmart primary"],["belle","belMTh"],["mae","maeMT","A-to-Z backup only"],["erika","eriMTh"],["joy","joyWk","Amazon owner tonight"],["niel","nielWk","TikTok owner tonight"],["neil","eveWM","Walmart owner tonight"]],
+ 3:[["nathan","natW","Only daytime Walmart"],["belle","belMTh"],["mae","maeWF","A-to-Z backup only"],["erika","eriMTh"],["joy","joyWk"],["niel","nielWk"],["neil","eveWM","Walmart primary"]],
+ 4:[["tim","timThF","Walmart primary today"],["belle","belMTh"],["mae","maeWF","A-to-Z backup only"],["erika","eriMTh"],["joy","joyWk"],["niel","nielWk"],["nathan","eveWM","Evening shift Thursday"]],
+ 5:[["tim","timThF","Walmart primary today"],["belle","belF","Friday: TikTok backup if Mae asks"],["mae","maeWF","Added Friday shift"],["erika","eriF","Friday: covers Belle's lunch"],["joy","joyWk"],["niel","nielWk"],["neil","eveWM","Walmart primary"]],
+ 6:[["tim","timSat","Overnight — Walmart"],["joy","joySat","Overnight — Amazon"],["niel","nielSat","Overnight — TikTok"]]
+};
+const GAPS = {
+ 0:["<b>7 AM – 4 PM</b> No dedicated Sunday daytime Walmart specialist. Confirm relief and lunch handoffs.",
+    "<b>1 – 2 PM</b> Mae's lunch: no active TikTok coverage.",
+    "<b>8 – 9 PM</b> Neil's lunch: no active CS coverage.",
+    "<b>6 – 7 AM</b> No coverage between the Saturday overnight shift and Belle's 7 AM start.",
+    "<b>1 – 7 AM Mon</b> No staffed coverage overnight."],
+ 1:["<b>8 – 9 PM</b> Walmart relief during Neil's lunch is unassigned.","<b>1 – 7 AM</b> No staffed coverage overnight. Confirm closure or authorized relief."],
+ 2:["<b>4 PM – 1 AM</b> Three owners tonight (Neil: Walmart, Joy: Amazon, Niel: TikTok). Stagger lunches; urgent cases still need cross-training.","<b>8 – 9 PM</b> Walmart relief during Neil's lunch is unassigned.","<b>1 – 7 AM</b> No staffed coverage overnight."],
+ 3:["<b>10:30 – 11:30 AM</b> Walmart relief during Nathan's lunch is not confirmed. Avoid assigning Belle or Joy to Walmart.","<b>8 – 9 PM</b> Walmart relief during Neil's lunch is unassigned.","<b>1 – 7 AM</b> No staffed coverage overnight."],
+ 4:["<b>11:30 AM – 12:30 PM</b> Walmart relief during Tim's lunch is not confirmed.","<b>8 – 9 PM</b> Walmart relief during Nathan's lunch is unassigned.","<b>1 – 7 AM</b> No staffed coverage overnight."],
+ 5:["<b>11:30 AM – 12:30 PM</b> Walmart relief during Tim's lunch is not confirmed.","<b>8 – 9 PM</b> Walmart relief during Neil's lunch is unassigned.","<b>1 AM – 9 PM Sat</b> No staffed coverage until the Saturday overnight shift. Confirm closure or authorized relief."],
+ 6:["<b>Until 9 PM</b> No staffed daytime coverage on Saturday.","<b>12 – 1 AM Sun</b> Tim's lunch needs a trained, authorized Walmart backup — not yet named."]
+};
+const HOLIDAYS = {
+ "11-26":"Thanksgiving — confirm whether the regular Thursday roster applies or a holiday break is approved.",
+ "11-27":"Black Friday — expect heavy volume; keep finish-early work on oldest actionable cases.",
+ "11-30":"Cyber Monday — expect heavy volume across all marketplaces.",
+ "12-24":"Christmas Eve follows the Thursday roster unless approved celebration breaks apply. Holiday breaks, paid status and relief need confirmation.",
+ "12-25":"Christmas Day — confirm staffing and paid status before publishing to the team.",
+ "12-31":"New Year's Eve follows the Thursday roster unless approved celebration breaks apply. Holiday breaks, paid status and relief need confirmation.",
+ "01-01":"New Year's Day — confirm staffing and paid status before publishing to the team."
+};
+const DAYN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function fmt(h){h=((h%24)+24)%24;let hr=Math.floor(h),m=Math.round((h-hr)*60);const ap=hr<12?"AM":"PM";hr=hr%12||12;return hr+(m?":"+String(m).padStart(2,"0"):"")+" "+ap}
+function fmtTick(h){h=h%24;const ap=h<12?"AM":"PM";return (h%12||12)+ap}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function parse(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function platforms(blocks){
+  const t={};blocks.forEach(b=>{if(["lu","ho","op"].includes(b[2]))return;t[b[2]]=(t[b[2]]||0)+(b[1]-b[0])});
+  return Object.keys(t).sort((a,b)=>t[b]-t[a]).map(k=>CAT[k].n);
+}
+function entries(d){return (WEEK[d.getDay()]||[]).map(([p,plan,note])=>{const bl=P[plan];return {p,plan,note,bl,start:bl[0][0],end:bl[bl.length-1][1]}}).sort((a,b)=>a.start-b.start||a.end-b.end)}
+
+let cur=new Date();cur=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate());
+try{const s=localStorage.getItem("cs-hol-date");if(s)cur=parse(s)}catch(e){}
+let selected=null;
+
+const $=id=>document.getElementById(id);
+$("legend").innerHTML=Object.entries(CAT).filter(([k,c])=>!c.hide).map(([k,c])=>`<span><i class="c-${k}"></i>${c.n}</span>`).join("")+`<span><i style="border:1.5px dashed var(--now)"></i>Relief not assigned</span>`;
+
+function render(){
+  try{localStorage.setItem("cs-hol-date",iso(cur))}catch(e){}
+  const dn=DAYN[cur.getDay()], long=`${dn}, ${MON[cur.getMonth()]} ${cur.getDate()}, ${cur.getFullYear()}`;
+  $("date").value=iso(cur);$("longdate").textContent=long;
+  const E=entries(cur);
+  // week strip (Mon–Sun)
+  const mon=new Date(cur);mon.setDate(cur.getDate()-((cur.getDay()+6)%7));
+  let wk="";for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);const key=String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    wk+=`<button class="day${iso(d)===iso(cur)?" sel":""}" data-d="${iso(d)}"><b>${DAYN[d.getDay()].slice(0,3)}</b><span>${MON[d.getMonth()].slice(0,3)} ${d.getDate()}</span><span${HOLIDAYS[key]?' class="hd"':""}>${HOLIDAYS[key]?"Holiday":(WEEK[d.getDay()].length+" on")}</span></button>`}
+  $("week").innerHTML=wk;
+  const hk=String(cur.getMonth()+1).padStart(2,"0")+"-"+String(cur.getDate()).padStart(2,"0");
+  $("holiday").hidden=!HOLIDAYS[hk];$("holiday").textContent=HOLIDAYS[hk]||"";
+  // roster
+  $("who-h").textContent=`Who's scheduled ${iso(cur)===iso(new Date())?"today":"on "+dn} (${E.length})`;
+  $("roster").innerHTML=E.map(e=>{const pp=PEOPLE[e.p];return `<div class="row"><div><div class="nm">${pp.n}${pp.loc?` <em>(${pp.loc})</em>`:""}</div><div class="meta">${fmt(e.start)} – ${fmt(e.end)} · ${platforms(e.bl).join(", ")}</div></div>${e.note?`<div class="note">${esc(e.note)}</div>`:""}</div>`}).join("")||`<div class="empty">No one is scheduled.</div>`;
+  // timeline
+  $("tl-h").textContent=`Task Timeline — ${long}`;
+  const s=Math.floor(Math.min(...E.map(e=>e.start))), en=Math.ceil(Math.max(...E.map(e=>e.end)));
+  const hrs=en-s, tl=$("tl"), H=parseFloat(getComputedStyle(tl).getPropertyValue("--h"))||72;
+  const W=hrs*H;
+  let html=`<div class="tl-row axis"><div class="tl-name"></div><div class="track" style="width:${W}px">`;
+  for(let h=s;h<=en;h++)html+=`<span class="tick${h===s?" first":""}" style="left:${(h-s)*H}px">${fmtTick(h)}</span>`;
+  html+=`</div></div>`;
+  E.forEach((e,ri)=>{const pp=PEOPLE[e.p];
+    html+=`<div class="tl-row"><div class="tl-name"><b>${pp.n}${pp.loc?" ("+pp.loc+")":""}</b><small>${fmt(e.start)} – ${fmt(e.end)}</small></div><div class="track" style="width:${W}px">`;
+    e.bl.forEach((b,bi)=>{const l=(b[0]-s)*H, w=(b[1]-b[0])*H-3, lab=b[6]||CAT[b[2]].s||b[3];const id=ri+"-"+bi;
+      html+=`<div class="blk c-${b[2]}${b[5]?" flag":""}${selected===id?" on":""}" tabindex="0" role="button" data-id="${id}" style="left:${l+1.5}px;width:${w}px" title="${fmt(b[0])} – ${fmt(b[1])} · ${esc(b[3])}"><span class="s">${esc(lab)}</span>${w>70&&b[2]!=="lu"&&b[2]!=="ho"?`<span class="t">${fmt(b[0])} – ${fmt(b[1])}</span>`:""}</div>`});
+    html+=`</div></div>`});
+  tl.innerHTML=html;
+  // now line
+  if(iso(cur)===iso(new Date())){const n=new Date(),nh=n.getHours()+n.getMinutes()/60;if(nh>=s&&nh<=en){const nl=document.createElement("div");nl.className="nowline";const nw=tl.querySelector(".tl-name").offsetWidth;nl.style.left=(nw+(nh-s)*H)+"px";tl.appendChild(nl)}}
+  tl._E=E;
+  showDetail();
+  $("alerts").innerHTML=(GAPS[cur.getDay()]||[]).map(g=>`<li>${g}</li>`).join("");
+}
+function showDetail(){
+  const E=$("tl")._E;if(!selected||!E){$("detail").innerHTML=`<span class="hint">Select any block on the timeline to see the main task and what to work on if it finishes early.</span>`;return}
+  const [ri,bi]=selected.split("-").map(Number);const e=E[ri];if(!e||!e.bl[bi]){selected=null;return showDetail()}
+  const b=e.bl[bi],pp=PEOPLE[e.p];
+  $("detail").innerHTML=`<div><b>${pp.n}</b> · <span style="font-variant-numeric:tabular-nums">${fmt(b[0])} – ${fmt(b[1])}</span><span class="chip c-${b[2]}">${CAT[b[2]].n}</span></div>
+   <div><div class="k">Main task</div>${esc(b[3])}</div>
+   ${b[4]?`<div><div class="k">If finished early</div>${esc(b[4])}</div>`:""}
+   ${b[5]?`<div style="color:var(--now);font-weight:600">Coverage gap: relief for this block is not assigned yet.</div>`:""}`;
+}
+function go(d){cur=d;selected=null;render()}
+$("prev").onclick=()=>{const d=new Date(cur);d.setDate(d.getDate()-1);go(d)};
+$("next").onclick=()=>{const d=new Date(cur);d.setDate(d.getDate()+1);go(d)};
+$("today").onclick=()=>{const n=new Date();go(new Date(n.getFullYear(),n.getMonth(),n.getDate()))};
+$("date").onchange=e=>{if(e.target.value)go(parse(e.target.value))};
+$("week").onclick=e=>{const b=e.target.closest(".day");if(b)go(parse(b.dataset.d))};
+function pick(el){selected=el.dataset.id;document.querySelectorAll(".blk.on").forEach(x=>x.classList.remove("on"));el.classList.add("on");showDetail()}
+$("tl").addEventListener("click",e=>{const b=e.target.closest(".blk");if(b)pick(b)});
+$("tl").addEventListener("keydown",e=>{const b=e.target.closest(".blk");if(b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();pick(b)}});
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(render,150)});
+render();
+</script>
