@@ -91,7 +91,7 @@ h2{font-family:var(--display);font-weight:600;font-size:17px;margin:0 0 10px}
 .blk .t{font-size:10.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .blk.flag{border:1.5px dashed var(--now)}
 .blk.on{box-shadow:0 0 0 2px var(--fg)}
-.c-tt{background:var(--tt);color:var(--tt-fg)} .c-wm{background:var(--wm);color:var(--wm-fg)}
+.c-tt{background:var(--tt);color:var(--tt-fg)} .c-wm,.c-wd{background:var(--wm);color:var(--wm-fg)}
 .c-az{background:var(--az);color:var(--az-fg)} .c-bm{background:var(--bm);color:var(--bm-fg)}
 .c-fl{background:var(--fl);color:var(--fl-fg)} .c-sp{background:var(--sp);color:var(--sp-fg)}
 .c-op{background:var(--op);color:var(--op-fg)} .c-lu{background:var(--lu);color:var(--lu-fg)}
@@ -170,7 +170,7 @@ h2{font-family:var(--display);font-weight:600;font-size:17px;margin:0 0 10px}
 const CAT = {
   tt:{n:"TikTok",s:"TikTok"}, wm:{n:"Walmart / Temu",s:"Walmart/Temu"}, az:{n:"Amazon",s:"Amazon"},
   bm:{n:"Back Market",s:"Back Market"}, fl:{n:"StackCommerce / UntilGone / Groupon",s:"SC/UG/Groupon"},
-  sp:{n:"Whatnot / Best Buy / eBay",s:""}, op:{n:"RMA & sheets",s:"RMA / Sheets"},
+  wd:{n:"Walmart disputes",s:"Walmart disputes",hide:1}, sp:{n:"Whatnot / Best Buy / eBay",s:""}, op:{n:"RMA & sheets",s:"RMA / Sheets"},
   lu:{n:"Lunch",s:"Lunch"}, ho:{n:"Handoff",s:"Handoff"}
 };
 // [start, end, cat, task, ifEarly, flag, shortLabel]  hours; >24 = after midnight
@@ -229,7 +229,7 @@ const P = {
   [8,11,"tt","TikTok messages, replacements, labels and authorized return work","Amazon CS"],
   [11,12,"lu","Lunch"],
   [12,13,"az","Amazon CS and urgent relief during Belle's lunch","TikTok"],
-  [13,14,"wm","Walmart disputes and Amazon follow-ups (A-to-Z only if requested as backup)","Amazon",0,"Walmart disputes"],
+  [13,14,"wd","Walmart disputes and Amazon follow-ups (A-to-Z only if requested as backup)","Amazon",0,"Walmart disputes"],
   [14,15,"az","Amazon CS — Chrome Source and Certified Resellers","Amazon if TikTok is current"],
   [15,15.75,"tt","TikTok final work and follow-ups","Amazon"],
   [15.75,16,"ho","Written handoff"]],
@@ -327,7 +327,7 @@ const PEOPLE = {
 };
 // day index 0=Sun ... 6=Sat → [person, plan, note]
 const WEEK = {
- 0:[["belle","belSun","Added Sunday shift"],["mae","maeSun","Added Sunday shift · A-to-Z backup only"],["neil","neilSun","Shares Amazon/TikTok after 4 PM"]],
+ 0:[["belle","belSun","Added Sunday shift"],["mae","maeSun","TikTok primary · A-to-Z backup only"],["neil","neilSun","Shares Amazon/TikTok after 4 PM"]],
  1:[["tim","timMT"],["nathan","natMT","Walmart primary"],["belle","belMTh"],["mae","maeMT","A-to-Z backup only"],["erika","eriMTh"],["joy","joyWk"],["niel","nielWk"],["neil","eveWM","Walmart primary"]],
  2:[["tim","timMT"],["nathan","natMT","Walmart primary"],["belle","belMTh"],["mae","maeMT","A-to-Z backup only"],["erika","eriMTh"],["joy","joyWk","Amazon owner tonight"],["niel","nielWk","TikTok owner tonight"],["neil","eveWM","Walmart owner tonight"]],
  3:[["nathan","natW","Only daytime Walmart"],["belle","belMTh"],["mae","maeWF","A-to-Z backup only"],["erika","eriMTh"],["joy","joyWk"],["niel","nielWk"],["neil","eveWM","Walmart primary"]],
@@ -338,7 +338,9 @@ const WEEK = {
 const GAPS = {
  0:["<b>7 AM – 4 PM</b> No dedicated Sunday daytime Walmart specialist. Confirm relief and lunch handoffs.",
     "<b>1 – 2 PM</b> Mae's lunch: no active TikTok coverage.",
-    "<b>8 – 9 PM</b> Neil's lunch: no active CS coverage."],
+    "<b>8 – 9 PM</b> Neil's lunch: no active CS coverage.",
+    "<b>6 – 7 AM</b> No coverage between the Saturday overnight shift and Belle's 7 AM start.",
+    "<b>1 – 7 AM Mon</b> No staffed coverage overnight."],
  1:["<b>8 – 9 PM</b> Walmart relief during Neil's lunch is unassigned.","<b>1 – 7 AM</b> No staffed coverage overnight. Confirm closure or authorized relief."],
  2:["<b>4 PM – 1 AM</b> Three owners tonight (Neil: Walmart, Joy: Amazon, Niel: TikTok). Stagger lunches; urgent cases still need cross-training.","<b>8 – 9 PM</b> Walmart relief during Neil's lunch is unassigned.","<b>1 – 7 AM</b> No staffed coverage overnight."],
  3:["<b>10:30 – 11:30 AM</b> Walmart relief during Nathan's lunch is not confirmed. Avoid assigning Belle or Joy to Walmart.","<b>8 – 9 PM</b> Walmart relief during Neil's lunch is unassigned.","<b>1 – 7 AM</b> No staffed coverage overnight."],
@@ -374,7 +376,7 @@ try{const s=localStorage.getItem("cs-hol-date");if(s)cur=parse(s)}catch(e){}
 let selected=null;
 
 const $=id=>document.getElementById(id);
-$("legend").innerHTML=Object.entries(CAT).map(([k,c])=>`<span><i class="c-${k}"></i>${c.n}</span>`).join("")+`<span><i style="border:1.5px dashed var(--now)"></i>Relief not assigned</span>`;
+$("legend").innerHTML=Object.entries(CAT).filter(([k,c])=>!c.hide).map(([k,c])=>`<span><i class="c-${k}"></i>${c.n}</span>`).join("")+`<span><i style="border:1.5px dashed var(--now)"></i>Relief not assigned</span>`;
 
 function render(){
   try{localStorage.setItem("cs-hol-date",iso(cur))}catch(e){}
